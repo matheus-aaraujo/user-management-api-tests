@@ -18,13 +18,13 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: oracle
+          java-version: '21'
           cache: maven
 
       - name: Run tests
@@ -35,15 +35,9 @@ jobs:
         if: always()
         run: bash ./mvnw allure:report
 
-      - name: Zip Allure Report
-        if: always()
-        run: |
-          cd target/site/allure-maven-plugin
-          zip -r ../../../allure-report.zip .
-
       - name: Upload Allure Report Artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: allure-report
-          path: allure-report.zip
+          path: target/site/allure-maven-plugin/
