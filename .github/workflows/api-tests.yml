@@ -22,10 +22,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -52,17 +48,31 @@ jobs:
           path: target/site/allure-maven-plugin/
           if-no-files-found: error
 
+  deploy-allure-report:
+    name: Publish Allure report
+    if: always() && github.event_name != 'pull_request'
+    needs: api-tests
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Download Allure report artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: allure-report
+          path: allure-report
+
       - name: Configure GitHub Pages
-        if: always() && github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
 
       - name: Upload GitHub Pages artifact
-        if: always() && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
         with:
-          path: target/site/allure-maven-plugin/
+          path: allure-report
 
       - name: Deploy Allure report to GitHub Pages
         id: deployment
-        if: always() && github.event_name != 'pull_request'
         uses: actions/deploy-pages@v4
