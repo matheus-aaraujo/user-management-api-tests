@@ -1,0 +1,31 @@
+name: API Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  api-tests:
+    name: Run API tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: oracle
+          java-version: '27'
+          cache: maven
+
+      - name: Run tests
+        run: bash ./mvnw --batch-mode --no-transfer-progress -DfailIfNoTests=true test
