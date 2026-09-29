@@ -9,12 +9,22 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   api-tests:
     name: Run API tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Check out repository
@@ -29,15 +39,30 @@ jobs:
 
       - name: Run tests
         run: bash ./mvnw --batch-mode --no-transfer-progress -DfailIfNoTests=true test
-        if: always()
 
-      - name: Generate Allure Report
+      - name: Generate Allure report
         if: always()
-        run: bash ./mvnw allure:report
+        run: bash ./mvnw --batch-mode --no-transfer-progress allure:report
 
-      - name: Upload Allure Report Artifact
+      - name: Upload Allure report artifact
+        if: always()
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: allure-report
           path: target/site/allure-maven-plugin/
+          if-no-files-found: error
+
+      - name: Configure GitHub Pages
+        if: always() && github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages artifact
+        if: always() && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: target/site/allure-maven-plugin/
+
+      - name: Deploy Allure report to GitHub Pages
+        id: deployment
+        if: always() && github.event_name != 'pull_request'
+        uses: actions/deploy-pages@v4

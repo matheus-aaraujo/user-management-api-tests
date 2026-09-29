@@ -6,3 +6,4 @@
 .env.*
 !.env.example
 /allure-results/
+/.allure/
