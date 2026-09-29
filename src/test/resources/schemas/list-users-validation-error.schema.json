@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "User listing field validation errors",
+  "description": "Observed API response: an object mapping invalid query parameter names to nonempty error messages. Tests assert the expected field and message.",
+  "type": "object",
+  "minProperties": 1,
+  "additionalProperties": {
+    "type": "string",
+    "minLength": 1
+  }
+}
