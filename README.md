@@ -1,6 +1,6 @@
 # user-management-api-tests
 
-API tests for ServeRest's `GET /usuarios` endpoint, built with Java, REST Assured and JUnit.
+API tests for ServeRest's user management endpoints, built with Java, REST Assured and JUnit.
 
 ## Requirements
 
@@ -28,6 +28,27 @@ bash ./mvnw clean test
 Reports are generated in `target/surefire-reports/`.
 
 To use another API address, append `"-Dbase.url=http://localhost:3000"` to the command.
+
+## Allure report
+
+To generate the Allure report locally, run:
+
+```powershell
+.\mvnw.cmd clean test allure:report
+```
+
+The HTML report is generated in `target/site/allure-maven-plugin/`.
+
+Do not open `index.html` directly with `file://`, because the report can stay stuck on `Loading...`. Serve the folder through a local HTTP server instead:
+
+```powershell
+cd target/site/allure-maven-plugin
+python -m http.server 8080
+```
+
+Then open `http://localhost:8080` in the browser.
+
+In GitHub Actions, pull requests upload the Allure report as an artifact. After downloading and extracting the zip, open it using the same local server approach. Pushes to `main` publish the report to GitHub Pages, making it available through a clickable URL in the action run.
 
 ## What is validated
 
