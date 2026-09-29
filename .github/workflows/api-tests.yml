@@ -9,6 +9,12 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
   api-tests:
@@ -24,8 +30,49 @@ jobs:
         uses: actions/setup-java@v6
         with:
           distribution: oracle
-          java-version: '27'
+          java-version: '21'
           cache: maven
 
       - name: Run tests
         run: bash ./mvnw --batch-mode --no-transfer-progress -DfailIfNoTests=true test
+
+      - name: Generate Allure report
+        if: always()
+        run: bash ./mvnw --batch-mode --no-transfer-progress allure:report
+
+      - name: Upload Allure report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: target/site/allure-maven-plugin/
+          if-no-files-found: error
+
+  deploy-allure-report:
+    name: Publish Allure report
+    if: always() && github.event_name != 'pull_request'
+    needs: api-tests
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Download Allure report artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: allure-report
+          path: allure-report
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: allure-report
+
+      - name: Deploy Allure report to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
