@@ -222,7 +222,7 @@ class ListUsersTest {
         .then()
             .statusCode(400)
             .contentType(ContentType.JSON)
-            .body(matchesJsonSchemaInClasspath("schemas/list-users-validation-error.schema.json"))
+            .body(matchesJsonSchemaInClasspath("schemas/users-validation-error.schema.json"))
             .body("administrador", equalTo("administrador deve ser 'true' ou 'false'"));
     }
 
@@ -236,7 +236,7 @@ class ListUsersTest {
         .then()
             .statusCode(400)
             .contentType(ContentType.JSON)
-            .body(matchesJsonSchemaInClasspath("schemas/list-users-validation-error.schema.json"))
+            .body(matchesJsonSchemaInClasspath("schemas/users-validation-error.schema.json"))
             .body("administrador", equalTo("administrador deve ser 'true' ou 'false'"));
     }
 
@@ -250,7 +250,7 @@ class ListUsersTest {
         .then()
             .statusCode(400)
             .contentType(ContentType.JSON)
-            .body(matchesJsonSchemaInClasspath("schemas/list-users-validation-error.schema.json"))
+            .body(matchesJsonSchemaInClasspath("schemas/users-validation-error.schema.json"))
             .body("email", equalTo("email deve ser um email válido"));
     }
 
@@ -264,7 +264,7 @@ class ListUsersTest {
         .then()
             .statusCode(400)
             .contentType(ContentType.JSON)
-            .body(matchesJsonSchemaInClasspath("schemas/list-users-validation-error.schema.json"))
+            .body(matchesJsonSchemaInClasspath("schemas/users-validation-error.schema.json"))
             .body("email", equalTo("email deve ser uma string"));
     }
 
@@ -278,7 +278,7 @@ class ListUsersTest {
         .then()
             .statusCode(400)
             .contentType(ContentType.JSON)
-            .body(matchesJsonSchemaInClasspath("schemas/list-users-validation-error.schema.json"))
+            .body(matchesJsonSchemaInClasspath("schemas/users-validation-error.schema.json"))
             .body("unexpected", equalTo("unexpected não é permitido"));
     }
 
@@ -293,7 +293,7 @@ class ListUsersTest {
         .then()
             .statusCode(400)
             .contentType(ContentType.JSON)
-            .body(matchesJsonSchemaInClasspath("schemas/list-users-validation-error.schema.json"))
+            .body(matchesJsonSchemaInClasspath("schemas/users-validation-error.schema.json"))
             .body("administrador", equalTo("administrador deve ser 'true' ou 'false'"));
     }
 

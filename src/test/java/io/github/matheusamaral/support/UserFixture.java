@@ -63,16 +63,20 @@ public final class UserFixture {
         return new User(id, name, email, password, administrator);
     }
 
+    public void deleteUser(String id) {
+        givenApi()
+            .pathParam("id", id)
+        .when()
+            .delete("/usuarios/{id}")
+        .then()
+            .statusCode(200);
+    }
+
     public void cleanup() {
         List<Executable> deletions = new ArrayList<>();
         for (String id : List.copyOf(createdUserIds)) {
             deletions.add(() -> {
-                givenApi()
-                    .pathParam("id", id)
-                .when()
-                    .delete("/usuarios/{id}")
-                .then()
-                    .statusCode(200);
+                deleteUser(id);
                 createdUserIds.remove(id);
             });
         }
