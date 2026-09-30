@@ -1,6 +1,6 @@
 # user-management-api-tests
 
-API tests for ServeRest's user management endpoints, built with Java, REST Assured and JUnit.
+API tests for ServeRest's user management endpoints, built with Java, REST Assured, JUnit and Allure.
 
 ## Requirements
 
@@ -23,6 +23,12 @@ bash ./mvnw clean test
 
 ```powershell
 .\mvnw.cmd clean test
+```
+
+The full suite includes one known failing scenario tagged as `known-bug`. To run only the stable scenarios, exclude that tag:
+
+```powershell
+.\mvnw.cmd clean test -DexcludedGroups=known-bug
 ```
 
 Reports are generated in `target/surefire-reports/`.
@@ -50,16 +56,69 @@ Then open `http://localhost:8080` in the browser.
 
 In GitHub Actions, pull requests upload the Allure report as an artifact. After downloading and extracting the zip, open it using the same local server approach. Pushes to `main` publish the report to GitHub Pages, making it available through a clickable URL in the action run.
 
+## Authentication
+
+ServeRest uses JWT authentication for protected resources, such as products and carts.
+
+The user endpoints covered by this project, such as `GET /usuarios`, `POST /usuarios`, `PUT /usuarios/{id}` and `DELETE /usuarios/{id}`, currently accept requests without an authentication token. During exploratory validation, `PUT /usuarios/{id}` and `DELETE /usuarios/{id}` also accepted an `Authorization` header, but did not require it.
+
+Because of that, authentication is used only in test setup for protected endpoints needed by user scenarios, such as creating products and carts before validating user deletion rules.
+
 ## What is validated
 
-- User listing and details, including success response schemas.
-- Filters by ID, name, email, password and administrator status.
-- Combined filters, conflicting filters and empty results.
-- Case-sensitive and partial ID searches returning no matches.
-- Invalid or empty administrator and email filters.
-- Unsupported parameters and repeated administrator values.
-- HTTP status codes, JSON content type, validation error schemas and messages.
+### GET /usuarios
 
-The suite creates two temporary users once and deletes them after execution.
+- Complete user listing and success response schema.
+- Empty results when no users match the search criteria.
+- Filters by ID, name, email, password and administrator status.
+- Combined filters, conflicting filters and required user details in the response.
+- Case-sensitive and partial ID searches returning no matches.
+- Invalid, empty and repeated administrator filters.
+- Invalid and empty email filters.
+- Unsupported query parameters.
+
+### POST /usuarios
+
+- Successful registration for regular and administrator users.
+- Registration of users with the same name and different email addresses.
+- Required fields: name, email, password and administrator.
+- Empty values for name, email, password and administrator.
+- Invalid email format and invalid administrator value.
+- Duplicate email rejection.
+- Unsupported fields in the registration payload.
+- Password length scenarios are mapped but disabled because the current API version does not enforce those rules.
+
+### GET /usuarios/{id}
+
+- Retrieval of an existing user by ID.
+- Not found response for a valid 16-character alphanumeric ID that does not exist.
+- Validation error for invalid, blank and partial IDs.
+- Not found response when the ID letter case differs.
+
+### PUT /usuarios/{id}
+
+- Successful update of an existing user.
+- User creation when updating a valid non-existent ID.
+- User creation when updating with a blank identifier, matching the current API behavior.
+- Rejection when using an email address that belongs to another user.
+- Required/blank field validations for name, email, password and administrator.
+- Invalid email format and invalid administrator value.
+- Unsupported fields in the update payload.
+
+### DELETE /usuarios/{id}
+
+- Successful removal of an existing user.
+- Prevention of removing a user with a registered cart.
+- Success message when removing a non-existent, invalid, blank or whitespace identifier.
+
+## Known Bug
+
+`PUT /usuarios/{id}` currently creates a user when the identifier has an invalid format, such as `invalid-id-value`.
+
+The expected behavior documented by the test is to reject identifiers that do not have exactly 16 alphanumeric characters. The scenario is intentionally kept as a failing test and tagged as `known-bug` so the Allure report shows the API gap clearly.
+
+## Test Data
+
+The suite creates temporary users during execution and removes them afterward. Some scenarios also create products and carts as setup data, using JWT authentication only where the API requires it.
 
 GitHub Actions runs the tests on pull requests targeting `main` and pushes to `main`.
