@@ -3,10 +3,12 @@ package io.github.matheusamaral.users;
 import io.github.matheusamaral.support.UserFixture;
 import io.github.matheusamaral.support.UserFixture.Product;
 import io.github.matheusamaral.support.UserFixture.User;
+import io.qameta.allure.Description;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.parallel.Execution;
@@ -25,6 +27,8 @@ class DeleteUserTest {
     private final UserFixture users = new UserFixture();
     private User userToRemove;
     private User userWithCart;
+    private User nonAdministratorUser;
+    private User userOwnedByAnotherAccount;
 
     @BeforeAll
     void setUp() {
@@ -35,6 +39,10 @@ class DeleteUserTest {
                 "delete-" + unique + "@example.com", "Test-" + unique, "false");
         userWithCart = users.createUser("Delete user with cart " + unique,
                 "delete-cart-" + unique + "@example.com", "Cart-" + unique, "false");
+        nonAdministratorUser = users.createUser("Delete requester " + unique,
+                "delete-requester-" + unique + "@example.com", "Requester-" + unique, "false");
+        userOwnedByAnotherAccount = users.createUser("Delete protected user " + unique,
+                "delete-protected-" + unique + "@example.com", "Protected-" + unique, "false");
         Product product = users.createProduct(administrator);
         users.createCart(userWithCart, product);
     }
@@ -45,9 +53,10 @@ class DeleteUserTest {
     }
 
     @Test
-    @DisplayName("Remove an existing user successfully")
-    void shouldRemoveExistingUser() {
+    @DisplayName("Remove the authenticated user successfully")
+    void shouldRemoveAuthenticatedUser() {
         givenApi()
+            .header("Authorization", users.login(userToRemove))
             .pathParam("id", userToRemove.id())
         .when()
             .delete("/usuarios/{id}")
@@ -69,7 +78,21 @@ class DeleteUserTest {
             .statusCode(400)
             .contentType(ContentType.JSON)
             .body(matchesJsonSchemaInClasspath("schemas/users-validation-error.schema.json"))
-            .body("message", equalTo("Não é permitido excluir usuário com carrinho cadastrado"));
+            .body("message", equalTo("N\u00e3o \u00e9 permitido excluir usu\u00e1rio com carrinho cadastrado"));
+    }
+
+    @Test
+    @Tag("known-bug")
+    @Description("Expected behavior: a non-administrator user authenticated with JWT should not be allowed to remove another user account. Current API behavior allows the deletion.")
+    @DisplayName("Reject removing another user when authenticated as a non-administrator")
+    void shouldRejectRemovingAnotherUserWhenAuthenticatedAsNonAdministrator() {
+        givenApi()
+            .header("Authorization", users.login(nonAdministratorUser))
+            .pathParam("id", userOwnedByAnotherAccount.id())
+        .when()
+            .delete("/usuarios/{id}")
+        .then()
+            .statusCode(403);
     }
 
     @Test
