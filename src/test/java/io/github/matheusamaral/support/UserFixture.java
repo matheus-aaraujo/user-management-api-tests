@@ -133,7 +133,7 @@ public final class UserFixture {
         createdUserIds.remove(id);
     }
 
-    private String login(User user) {
+    public String login(User user) {
         String requestBody = """
                 {
                   "email": "%s",

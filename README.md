@@ -25,7 +25,7 @@ bash ./mvnw clean test
 .\mvnw.cmd clean test
 ```
 
-The full suite includes one known failing scenario tagged as `known-bug`. To run only the stable scenarios, exclude that tag:
+The full suite includes known failing scenarios tagged as `known-bug`. To run only the stable scenarios, exclude that tag:
 
 ```powershell
 .\mvnw.cmd clean test -DexcludedGroups=known-bug
@@ -60,7 +60,7 @@ In GitHub Actions, pull requests upload the Allure report as an artifact. After 
 
 ServeRest uses JWT authentication for protected resources, such as products and carts.
 
-The user endpoints covered by this project, such as `GET /usuarios`, `POST /usuarios`, `PUT /usuarios/{id}` and `DELETE /usuarios/{id}`, currently accept requests without an authentication token. During exploratory validation, `PUT /usuarios/{id}` and `DELETE /usuarios/{id}` also accepted an `Authorization` header, but did not require it.
+The user endpoints covered by this project, such as `GET /usuarios`, `POST /usuarios`, `PUT /usuarios/{id}` and `DELETE /usuarios/{id}`, currently accept requests without an authentication token. During exploratory validation, `PUT /usuarios/{id}` and `DELETE /usuarios/{id}` also accepted an `Authorization` header, but did not enforce authorization rules for user ownership.
 
 Because of that, authentication is used only in test setup for protected endpoints needed by user scenarios, such as creating products and carts before validating user deletion rules.
 
@@ -107,15 +107,17 @@ Because of that, authentication is used only in test setup for protected endpoin
 
 ### DELETE /usuarios/{id}
 
-- Successful removal of an existing user.
+- Successful removal of the authenticated user.
 - Prevention of removing a user with a registered cart.
+- Authorization expectation for preventing a non-administrator user from removing another user account.
 - Success message when removing a non-existent, invalid, blank or whitespace identifier.
 
-## Known Bug
+## Known Bugs
 
-`PUT /usuarios/{id}` currently creates a user when the identifier has an invalid format, such as `invalid-id-value`.
+The suite intentionally keeps the following scenarios failing and tagged as `known-bug` so the Allure report shows the API gaps clearly:
 
-The expected behavior documented by the test is to reject identifiers that do not have exactly 16 alphanumeric characters. The scenario is intentionally kept as a failing test and tagged as `known-bug` so the Allure report shows the API gap clearly.
+- `PUT /usuarios/{id}` currently creates a user when the identifier has an invalid format, such as `invalid-id-value`. The expected behavior documented by the test is to reject identifiers that do not have exactly 16 alphanumeric characters.
+- `DELETE /usuarios/{id}` currently allows a non-administrator user authenticated with JWT to remove another user account. The expected behavior documented by the test is to reject this request with an authorization error.
 
 ## Test Data
 
